@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat | Chatting Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #222;
+      --bg-secondary: #151a15;
+      --bg-tertiary: #232323;
+      --bg-bubble: #101010;
+      --bg-bubble-me: #74b72e;
+      --text-primary: #74b72e;
+      --text-secondary: #eaffea;
+      --text-bubble: #74b72e;
+      --text-bubble-me: #232323;
+      --border-color: #74b72e;
+      --hover-bg: #222;
+    }
+
+    body.light-mode {
+      --bg-primary: #f0f0f0;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #e8e8e8;
+      --bg-bubble: #ffffff;
+      --bg-bubble-me: #74b72e;
+      --text-primary: #333;
+      --text-secondary: #555;
+      --text-bubble: #333;
+      --text-bubble-me: #ffffff;
+      --border-color: #74b72e;
+      --hover-bg: #e0e0e0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Audiowide', Arial, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .chat-wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      background: var(--bg-secondary);
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid var(--border-color);
+      transition: background-color 0.3s;
+    }
+
+    .sidebar-header {
+      text-align: center;
+      padding: 1rem 0;
+      font-size: 1.5rem;
+      border-bottom: 2px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .new-chat-btn {
+      background-color: #74b72e;
+      color: #222;
+      border: none;
+      margin: 0.7rem 1rem 0.3rem 1rem;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .new-chat-btn:hover {
+      background-color: #5aa91c;
+      color: #fff;
+    }
+
+    .chat-type-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      margin-left: 0.5rem;
+      background: rgba(116, 183, 46, 0.2);
+      color: var(--text-primary);
+    }
+
+    .group-info-btn {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    .group-info-btn:hover {
+      opacity: 1;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.9rem;
+      padding: 0.7rem 1rem 0.25rem 1rem;
+      font-weight: bold;
+      opacity: 0.8;
+      text-transform: uppercase;
+    }
+
+    .users-list {
+      flex: 1;
+      overflow-y: auto;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-list li {
+      padding: 0.7rem 1.4rem;
+      cursor: pointer;
+      border-left: 6px solid transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .sidebar-list li.selected,
+    .sidebar-list li:hover {
+      background: var(--hover-bg);
+      border-left: 6px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--bg-bubble-me);
+      border: none;
+      color: var(--text-bubble-me);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      opacity: 0.8;
+    }
+
+    .chat-menu-btn {
+      background: none;
+      border: none;
+      color: #74b72e;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0 0.5rem;
+      font-weight: bold;
+    }
+
+    .chat-menu-btn:hover {
+      color: #5aa91c;
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-tertiary);
+      transition: background-color 0.3s;
+    }
+
+    .chat-header {
+      background: var(--bg-secondary);
+      border-bottom: 2px solid var(--border-color);
+      padding: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--text-primary);
+      transition: background-color 0.3s, color 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .message-row.me {
+      flex-direction: row-reverse;
+    }
+
+    .pfp-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #74b72e;
+    }
+
+    .message-bubble {
+      background: var(--bg-bubble);
+      color: var(--text-bubble);
+      padding: 0.9rem 1.4rem;
+      border-radius: 14px;
+      max-width: 60%;
+      word-break: break-word;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .message-bubble.me {
+      background: var(--bg-bubble-me);
+      color: var(--text-bubble-me);
+    }
+
+    .typing-indicator {
+      padding: 0.5rem 1rem;
+      font-style: italic;
+      opacity: 0.7;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+    }
+
+    .message-meta {
+      opacity: 0.6;
+      font-size: 0.85rem;
+      margin-top: 0.2rem;
+    }
+
+    .chat-input-bar {
+      border-top: 2px solid var(--border-color);
+      padding: 1rem;
+      background: var(--bg-secondary);
+      display: flex;
+      gap: 0.5rem;
+      flex-direction: column;
+      transition: background-color 0.3s;
+    }
+
+    .chat-input-bar>textarea {
+      flex: 1;
+      border-radius: 10px;
+      border: none;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      padding: 0.7rem;
+      resize: none;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .chat-input-bar>textarea:focus {
+      outline: 2px solid var(--border-color);
+    }
+
+    .send-btn {
+      background-color: #74b72e;
+      color: #232323;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      align-self: flex-end;
+    }
+
+    .send-btn:hover {
+      background-color: #5aa91c;
+      color: #fff;
+    }
+
+    #user-profile {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .custom-modal-overlay.show {
+      opacity: 1;
+    }
+
+    .custom-modal {
+      background: var(--bg-bubble);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.5rem;
+      width: 320px;
+      box-shadow: 0 0 15px rgba(116, 183, 46, 0.3);
+      color: var(--text-primary);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .reply-indicator {
+      background: rgba(116, 183, 46, 0.18);
+      padding: 0.5rem 1rem;
+      border-left: 3px solid #74b72e;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .message-context-menu {
+      position: fixed;
+      background: var(--bg-bubble);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 0;
+      box-shadow: 0 4px 12px rgba(116, 183, 46, 0.3);
+      z-index: 10000;
+      min-width: 120px;
+      transition: background-color 0.3s;
+    }
+
+    .menu-item {
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: background 0.15s, color 0.3s;
+    }
+
+    .menu-item:hover {
+      background: var(--hover-bg);
+    }
+
+    .conversation-menu {
+      position: fixed;
+      background: var(--bg-bubble);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 0;
+      box-shadow: 0 4px 12px rgba(116, 183, 46, 0.3);
+      z-index: 10000;
+      min-width: 150px;
+      transition: background-color 0.3s;
+    }
+  </style>
+</head>
+
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div id="user-profile">
+    <img id="user-pfp" src="/default_pfp.png" class="pfp-img" title="Change profile picture">
+  </div>
+
+  <div class="chat-wrapper">
+    <aside class="sidebar">
+      <div class="sidebar-header">Chatting Hub</div>
+      <button class="new-chat-btn" data-bs-toggle="modal" data-bs-target="#chatTypeModal">+ New Chat</button>
+
+      <div class="sidebar-section-title">Direct Messages</div>
+      <ul class="sidebar-list users-list" id="usersList">
+        <li class="empty-state">No direct messages yet</li>
+      </ul>
+
+      <div class="sidebar-section-title">Group Chats</div>
+      <ul class="sidebar-list users-list" id="groupsList">
+        <li class="empty-state">No group chats yet</li>
+      </ul>
+    </aside>
+
+    <div class="chat-container">
+      <div class="chat-header">
+        <span id="chatTitle">Select a chat</span>
+        <button class="group-info-btn" id="groupInfoBtn" style="display:none;" onclick="openGroupSettings()">⚙️ Settings</button>
+      </div>
+      <div class="chat-messages" id="messagesContainer"></div>
+      <div class="typing-indicator" id="typingIndicator" style="display:none;"></div>
+      <form class="chat-input-bar" id="messageForm">
+        <textarea id="messageInput" placeholder="Type a message..." rows="2" required></textarea>
+        <button type="submit" class="send-btn">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Choose Chat Type -->
+  <div class="modal fade" id="chatTypeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background-color:var(--bg-bubble);border:2px solid var(--border-color);color:var(--text-primary);">
+        <div class="modal-header" style="border-bottom:2px solid var(--border-color);">
+          <h5 class="modal-title">New Chat</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <button class="btn btn-success w-100 mb-2" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#newChatModal">💬 Direct Message</button>
+          <button class="btn btn-success w-100" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#newGroupModal">👥 Group Chat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create DM -->
+  <div class="modal fade" id="newChatModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background-color:var(--bg-bubble);border:2px solid var(--border-color);color:var(--text-primary);">
+        <div class="modal-header" style="border-bottom:2px solid var(--border-color);">
+          <h5 class="modal-title">Start Private Chat</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createChatForm">
+            <label class="form-label">Username</label>
+            <input type="text" name="recipient_username" id="recipientUsername" class="form-control" placeholder="Enter username..." required style="background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);" />
+            <button type="submit" class="btn btn-success w-100 mt-3">Start Chat</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create Group -->
+  <div class="modal fade" id="newGroupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background-color:var(--bg-bubble);border:2px solid var(--border-color);color:var(--text-primary);">
+        <div class="modal-header" style="border-bottom:2px solid var(--border-color);">
+          <h5 class="modal-title">Create Group Chat</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createGroupForm">
+            <label class="form-label">Group Name</label>
+            <input type="text" id="groupName" class="form-control mb-3" placeholder="My Awesome Group" required style="background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);" />
+
+            <label class="form-label">Description (Optional)</label>
+            <textarea id="groupDescription" class="form-control mb-3" rows="2" placeholder="What's this group about?" style="background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);"></textarea>
+
+            <label class="form-label">Add Members</label>
+            <div class="d-flex gap-2 mb-2">
+              <input type="text" id="groupMemberInput" class="form-control" placeholder="Username" style="background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);" />
+              <button type="button" class="btn btn-success" onclick="addMemberToList()">Add</button>
+            </div>
+            <div id="membersList" style="max-height:100px;overflow-y:auto;margin-bottom:1rem;"></div>
+
+            <button type="submit" class="btn btn-success w-100">Create Group</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Group Settings -->
+  <div class="modal fade" id="groupSettingsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background-color:var(--bg-bubble);border:2px solid var(--border-color);color:var(--text-primary);">
+        <div class="modal-header" style="border-bottom:2px solid var(--border-color);">
+          <h5 class="modal-title">Group Settings</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="updateGroupForm">
+            <label class="form-label">Group Name</label>
+            <input type="text" id="editGroupName" class="form-control mb-3" required style="background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);" />
+
+            <label class="form-label">Description</label>
+            <textarea id="editGroupDescription" class="form-control mb-3" rows="2" style="background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);"></textarea>
+
+            <button type="submit" class="btn btn-success w-100 mb-2">Save Changes</button>
+          </form>
+
+          <hr style="border-color:var(--border-color);">
+
+          <h6>Members</h6>
+          <div id="groupMembersList" style="max-height:150px;overflow-y:auto;margin-bottom:1rem;"></div>
+
+          <form id="addMemberForm">
+            <label class="form-label">Add Member</label>
+            <div class="d-flex gap-2">
+              <input type="text" id="newMemberUsername" class="form-control" placeholder="Username" style="background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);" />
+              <button type="submit" class="btn btn-success">Add</button>
+            </div>
+          </form>
+
+          <hr style="border-color:var(--border-color);">
+
+          <button class="btn btn-danger w-100" onclick="leaveGroup()">Leave Group</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal -->
+  <div id="customModal" class="custom-modal-overlay" style="display:none;">
+    <div class="custom-modal">
+      <h5 id="modalTitle"></h5>
+      <textarea id="modalInput" class="form-control" rows="3" style="display:none;background:var(--bg-tertiary);color:var(--text-primary);border:2px solid var(--border-color);"></textarea>
+      <p id="modalMessage"></p>
+      <div class="modal-buttons">
+        <button id="modalCancel" class="btn btn-outline-success btn-sm">Cancel</button>
+        <button id="modalOk" class="btn btn-success btn-sm">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let conversationId = null;
+    let currentGroupId = null;
+    let chatType = null;
+    let userId = null;
+    let currentChatUsername = null;
+    let replyingTo = null;
+    let userPfpUrl = 'https://www.computerhope.com/issues/pictures/default.png';
+    let messagesCache = {};
+    let ws = null;
+    let typingTimeout = null;
+    let isTyping = false;
+    let groupMembersToAdd = [];
+
+    function addMemberToList() {
+      const input = document.getElementById('groupMemberInput');
+      const username = input.value.trim();
+      if (!username) return;
+      if (groupMembersToAdd.includes(username)) {
+        alert('Member already added!');
+        return;
+      }
+      groupMembersToAdd.push(username);
+      input.value = '';
+      updateMembersList();
+    }
+
+    function updateMembersList() {
+      const list = document.getElementById('membersList');
+      list.innerHTML = groupMembersToAdd.map(m => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem;border-bottom:1px solid var(--border-color);color:var(--text-primary);">
+          <span>${escapeHtml(m)}</span>
+          <button type="button" onclick="removeMemberFromList('${escapeHtml(m).replace(/'/g, "\\'")}')"; style="background:none;border:none;color:#ff4444;cursor:pointer;font-size:1.2rem;">×</button>
+        </div>
+      `).join('');
+    }
+
+    function removeMemberFromList(username) {
+      groupMembersToAdd = groupMembersToAdd.filter(m => m !== username);
+      updateMembersList();
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+      const isLight = document.body.classList.contains('light-mode');
+      document.getElementById('themeToggle').textContent = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light-mode');
+      document.getElementById('themeToggle').textContent = '🌙 Dark Mode';
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleWebSocketMessage(data);
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected, reconnecting in 3s...');
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    }
+
+    function handleWebSocketMessage(data) {
+      // FIXED: Check if userId is loaded before processing
+      if (!userId) {
+        console.log('userId not loaded yet, skipping WebSocket message');
+        return;
+      }
+
+      switch (data.type) {
+        case 'new_message':
+          if (chatType === 'dm' && data.conversation_id === conversationId) {
+            loadMessages();
+          }
+          break;
+        case 'new_group_message':
+          if (chatType === 'group' && data.group_id === currentGroupId) {
+            loadMessages();
+          }
+          loadGroupChats();
+          break;
+        case 'message_edited':
+        case 'message_deleted':
+        case 'reload_messages':
+          if (chatType === 'dm' && data.conversation_id === conversationId) {
+            loadMessages();
+          }
+          break;
+        case 'group_message_edited':
+        case 'group_message_deleted':
+          if (chatType === 'group' && data.group_id === currentGroupId) {
+            loadMessages();
+          }
+          break;
+        case 'conversation_deleted':
+          if (chatType === 'dm' && data.conversation_id === conversationId) {
+            conversationId = null;
+            chatType = null;
+            document.getElementById('chatTitle').textContent = 'Select a chat';
+            document.getElementById('messagesContainer').innerHTML = '';
+          }
+          loadPrivateChats();
+          break;
+        case 'group_updated':
+        case 'member_added':
+        case 'member_left':
+          if (chatType === 'group' && data.group_id === currentGroupId) {
+            loadGroupInfo();
+          }
+          loadGroupChats();
+          break;
+        case 'user_typing':
+          if (chatType === 'dm' && data.conversation_id === conversationId && data.user_id !== userId) {
+            showTypingIndicator(data.username);
+          }
+          break;
+        case 'user_stopped_typing':
+          if (chatType === 'dm' && data.conversation_id === conversationId) {
+            hideTypingIndicator();
+          }
+          break;
+      }
+    }
+
+    function showTypingIndicator(username) {
+      const indicator = document.getElementById('typingIndicator');
+      indicator.textContent = `${username} is typing...`;
+      indicator.style.display = 'block';
+    }
+
+    function hideTypingIndicator() {
+      const indicator = document.getElementById('typingIndicator');
+      indicator.style.display = 'none';
+    }
+
+    function sendTypingStatus() {
+      if (ws && ws.readyState === WebSocket.OPEN && conversationId) {
+        ws.send(JSON.stringify({
+          type: 'typing',
+          conversation_id: conversationId,
+          user_id: userId
+        }));
+      }
+    }
+
+    function sendStoppedTyping() {
+      if (ws && ws.readyState === WebSocket.OPEN && conversationId) {
+        ws.send(JSON.stringify({
+          type: 'stopped_typing',
+          conversation_id: conversationId
+        }));
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    async function showPopup({ title, message = '', input = false, defaultValue = '' }) {
+      return new Promise(resolve => {
+        const overlay = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalInput = document.getElementById('modalInput');
+        const modalMsg = document.getElementById('modalMessage');
+        const btnOk = document.getElementById('modalOk');
+        const btnCancel = document.getElementById('modalCancel');
+
+        modalTitle.textContent = title;
+        modalMsg.textContent = message;
+        modalInput.style.display = input ? 'block' : 'none';
+        modalInput.value = defaultValue;
+
+        overlay.style.display = 'flex';
+        setTimeout(() => overlay.classList.add('show'), 10);
+
+        const cleanup = () => {
+          overlay.classList.remove('show');
+          setTimeout(() => overlay.style.display = 'none', 200);
+          btnOk.onclick = btnCancel.onclick = null;
+        };
+
+        btnCancel.onclick = () => { cleanup(); resolve(null); }
+        btnOk.onclick = () => { cleanup(); resolve(input ? modalInput.value.trim() : true); }
+      });
+    }
+
+    async function initUser() {
+      try {
+        const res = await fetch('/api/user-info');
+        if (!res.ok) return;
+        const data = await res.json();
+        userId = data.id;
+        userPfpUrl = data.pfp_url || 'https://www.computerhope.com/issues/pictures/default.png';
+        document.getElementById('user-pfp').src = userPfpUrl;
+      } catch (err) { console.error(err); }
+    }
+
+    async function loadPrivateChats() {
+      try {
+        const res = await fetch('/api/private-chats');
+        if (!res.ok) return;
+        const chats = await res.json();
+        const usersList = document.getElementById('usersList');
+        if (!chats || chats.length === 0) {
+          usersList.innerHTML = '<li class="empty-state">No direct messages yet</li>';
+          return;
+        }
+        usersList.innerHTML = chats.map(chat => `
+          <li onclick="selectChat(${chat.id}, '${escapeHtml(chat.username).replace(/'/g, "\\'")}', 'dm')">
+            <span>${escapeHtml(chat.username)}</span>
+            <button class="chat-menu-btn" onclick="event.stopPropagation(); showConversationMenu(event, ${chat.id}, '${escapeHtml(chat.username).replace(/'/g, "\\'")}', ${chat.other_user_id})">⋮</button>
+          </li>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function loadGroupChats() {
+      try {
+        const res = await fetch('/api/group-chats');
+        if (!res.ok) return;
+        const groups = await res.json();
+        const groupsList = document.getElementById('groupsList');
+        if (!groups || groups.length === 0) {
+          groupsList.innerHTML = '<li class="empty-state">No group chats yet</li>';
+          return;
+        }
+        groupsList.innerHTML = groups.map(group => `
+          <li onclick="selectChat(${group.id}, '${escapeHtml(group.name).replace(/'/g, "\\'")}', 'group')">
+            <span>${escapeHtml(group.name)} <span class="chat-type-badge">${group.member_count} members</span></span>
+            <button class="chat-menu-btn" onclick="event.stopPropagation(); showGroupMenu(event, ${group.id}, '${escapeHtml(group.name).replace(/'/g, "\\'")}')">⋮</button>
+          </li>
+        `).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    function selectChat(id, name, type) {
+      chatType = type;
+      if (type === 'dm') {
+        conversationId = id;
+        currentGroupId = null;
+        document.getElementById('groupInfoBtn').style.display = 'none';
+      } else {
+        currentGroupId = id;
+        conversationId = null;
+        document.getElementById('groupInfoBtn').style.display = 'inline-block';
+      }
+
+      currentChatUsername = name;
+      document.getElementById('chatTitle').textContent = name;
+
+      document.querySelectorAll('.sidebar-list li').forEach(li => li.classList.remove('selected'));
+      const lis = document.querySelectorAll('.sidebar-list li');
+      for (const li of lis) {
+        if (li.textContent.trim().startsWith(name)) {
+          li.classList.add('selected');
+          break;
+        }
+      }
+      loadMessages();
+      replyingTo = null;
+      cancelReply();
+    }
+
+    async function loadMessages() {
+      if (!userId) {
+        await initUser();
+        if (!userId) return;
+      }
+
+      const endpoint = chatType === 'dm'
+        ? `/api/messages/${conversationId}?limit=100`
+        : `/api/group-messages/${currentGroupId}?limit=100`;
+
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) return;
+        const messages = await res.json();
+
+        messagesCache = {};
+        messages.forEach(msg => {
+          messagesCache[msg.id] = msg;
+        });
+
+        const container = document.getElementById('messagesContainer');
+        const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
+
+        container.innerHTML = messages.filter(msg => !msg.deleted).map(msg => {
+          const isMine = msg.sender_id === userId;
+          const pfp = isMine ? userPfpUrl : (msg.pfp_url || 'https://www.computerhope.com/issues/pictures/default.png');
+
+          let replyHtml = '';
+          if (msg.reply_to_message_id && msg.reply_to_username) {
+            replyHtml = `<div style="display:flex;align-items:center;gap:0.3rem;background:rgba(116,183,46,0.12);padding:0.2rem 0.7rem;border-left:3px solid #74b72e;margin-bottom:0.5rem;border-radius:7px;font-size:0.76em;font-style:italic;color:#a3d27a;"><strong>${escapeHtml(msg.reply_to_username)}:</strong> <span>${escapeHtml(msg.reply_to_message).substring(0, 60)}${msg.reply_to_message.length > 60 ? '...' : ''}</span></div>`;
+          }
+
+          const editedBadge = msg.edited_at ? '<span style="opacity:.6;font-size:0.78em;">(edited)</span>' : '';
+          const content = escapeHtml(msg.message);
+
+          return `<div class="message-row ${isMine ? 'me' : ''}">
+                    <img src="${pfp}" class="pfp-img">
+                    <div class="message-bubble ${isMine ? 'me' : ''}" data-message-id="${msg.id}" data-sender-id="${msg.sender_id}" onclick="showMessageMenu(event,this)">
+                      ${replyHtml}${content}<div class="message-meta">${escapeHtml(msg.username)} ${editedBadge}</div>
+                    </div>
+                  </div>`;
+        }).join('');
+
+        if (wasAtBottom) {
+          container.scrollTop = container.scrollHeight;
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    async function sendMessage(e) {
+      e.preventDefault();
+      if (!conversationId && !currentGroupId) return;
+
+      const input = document.getElementById('messageInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      let endpoint, body;
+
+      if (chatType === 'dm') {
+        body = { conversation_id: conversationId, message };
+        if (replyingTo) body.reply_to_message_id = replyingTo.id;
+        endpoint = replyingTo ? '/api/reply-message' : '/api/send-message';
+      } else {
+        body = { group_id: currentGroupId, message };
+        if (replyingTo) body.reply_to_message_id = replyingTo.id;
+        endpoint = '/api/send-group-message';
+      }
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        input.value = '';
+        cancelReply();
+        // FIXED: Immediately reload messages after sending
+        loadMessages();
+      } else {
+        alert('Error sending message');
+      }
+    }
+
+    document.getElementById('messageForm').addEventListener('submit', sendMessage);
+
+    document.getElementById('messageInput').addEventListener('input', () => {
+      if (!isTyping) {
+        isTyping = true;
+        sendTypingStatus();
+      }
+
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        isTyping = false;
+        sendStoppedTyping();
+      }, 1000);
+    });
+
+    function replyToMessage(messageId, username, message) {
+      replyingTo = { id: messageId, username, message };
+      const inputBar = document.querySelector('.chat-input-bar');
+      const existing = inputBar.querySelector('.reply-indicator');
+      if (existing) existing.remove();
+      const replyIndicator = document.createElement('div');
+      replyIndicator.className = 'reply-indicator';
+      replyIndicator.innerHTML = `<div><strong>Replying to ${escapeHtml(username)}:</strong><br><span style="opacity:.74;font-size:.93em;">${escapeHtml(message).substring(0, 60)}${message.length > 60 ? '...' : ''}</span></div><button onclick="cancelReply()" style="background:none;border:none;color:#74b72e;cursor:pointer;font-size:1.19em;">×</button>`;
+      inputBar.insertBefore(replyIndicator, inputBar.firstChild);
+      document.getElementById('messageInput').focus();
+    }
+
+    function cancelReply() {
+      replyingTo = null;
+      const ind = document.querySelector('.reply-indicator');
+      if (ind) ind.remove();
+    }
+
+    function showMessageMenu(e, el) {
+      e.stopPropagation();
+      closeMenu();
+      const id = el.getAttribute('data-message-id');
+      const senderId = parseInt(el.getAttribute('data-sender-id'));
+      const isMine = senderId === userId;
+      const messageData = messagesCache[id];
+
+      const menu = document.createElement('div');
+      menu.className = 'message-context-menu';
+      menu.style.cssText = `position:fixed;top:${e.clientY + 5}px;left:${Math.max(6, e.clientX - 60)}px;min-width:120px;z-index:10000;`;
+
+      const makeItem = (text, onClick, color) => {
+        const d = document.createElement('div');
+        d.className = 'menu-item';
+        d.textContent = text;
+        if (color) d.style.color = color;
+        d.onclick = (ev) => {
+          ev.stopPropagation();
+          onClick();
+          closeMenu();
+        };
+        return d;
+      };
+
+      menu.appendChild(makeItem('Reply', () => replyToMessage(id, messageData.username, messageData.message)));
+
+      if (isMine) {
+        menu.appendChild(makeItem('Edit', () => editMessage(id, messageData.message)));
+        menu.appendChild(makeItem('Delete', () => deleteMessage(id), '#ff4444'));
+      }
+
+      document.body.appendChild(menu);
+      setTimeout(() => document.addEventListener('click', closeMenu), 0);
+    }
+
+    function showConversationMenu(e, chatId, username, otherUserId) {
+      closeConversationMenu();
+      const menu = document.createElement('div');
+      menu.className = 'conversation-menu';
+      menu.style.cssText = `position:fixed;top:${e.clientY + 5}px;left:${e.clientX - 150}px;`;
+
+      const makeItem = (text, onClick, color) => {
+        const d = document.createElement('div');
+        d.className = 'menu-item';
+        d.textContent = text;
+        if (color) d.style.color = color;
+        d.onclick = (ev) => {
+          ev.stopPropagation();
+          onClick();
+          closeConversationMenu();
+        };
+        return d;
+      };
+
+      menu.appendChild(makeItem('Delete Chat', () => deleteConversation(chatId, username), '#ff4444'));
+
+      document.body.appendChild(menu);
+      setTimeout(() => document.addEventListener('click', closeConversationMenu), 0);
+    }
+
+    function closeConversationMenu() {
+      const menu = document.querySelector('.conversation-menu');
+      if (menu) menu.remove();
+      document.removeEventListener('click', closeConversationMenu);
+    }
+
+    function closeMenu() {
+      const menu = document.querySelector('.message-context-menu');
+      if (menu) menu.remove();
+      document.removeEventListener('click', closeMenu);
+    }
+
+    async function editMessage(id, currentText) {
+      const newText = await showPopup({
+        title: 'Edit Message',
+        message: 'Update message below:',
+        input: true,
+        defaultValue: currentText
+      });
+
+      if (!newText || newText === currentText) return;
+
+      const endpoint = chatType === 'dm' ? `/api/edit-message/${id}` : `/api/edit-group-message/${id}`;
+
+      const res = await fetch(endpoint, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: newText })
+      });
+
+      if (!res.ok) {
+        alert('Error editing message');
+      }
+    }
+
+    async function deleteMessage(id) {
+      const confirmed = await showPopup({
+        title: 'Delete Message',
+        message: 'Are you sure you want to delete this message?'
+      });
+
+      if (!confirmed) return;
+
+      const endpoint = chatType === 'dm' ? `/api/delete-message/${id}` : `/api/delete-group-message/${id}`;
+
+      const res = await fetch(endpoint, { method: 'DELETE' });
+
+      if (!res.ok) {
+        alert('Error deleting message');
+      }
+    }
+
+    function showGroupMenu(e, groupId, groupName) {
+      closeConversationMenu();
+      const menu = document.createElement('div');
+      menu.className = 'conversation-menu';
+      menu.style.cssText = `position:fixed;top:${e.clientY + 5}px;left:${e.clientX - 150}px;`;
+
+      const makeItem = (text, onClick, color) => {
+        const d = document.createElement('div');
+        d.className = 'menu-item';
+        d.textContent = text;
+        if (color) d.style.color = color;
+        d.onclick = (ev) => {
+          ev.stopPropagation();
+          onClick();
+          closeConversationMenu();
+        };
+        return d;
+      };
+
+      menu.appendChild(makeItem('Group Settings', () => openGroupSettingsFor(groupId)));
+      menu.appendChild(makeItem('Leave Group', () => confirmLeaveGroup(groupId), '#ff4444'));
+
+      document.body.appendChild(menu);
+      setTimeout(() => document.addEventListener('click', closeConversationMenu), 0);
+    }
+
+    async function openGroupSettingsFor(groupId) {
+      currentGroupId = groupId;
+      await loadGroupInfo();
+      const modal = new bootstrap.Modal(document.getElementById('groupSettingsModal'));
+      modal.show();
+    }
+
+    function openGroupSettings() {
+      if (currentGroupId) {
+        openGroupSettingsFor(currentGroupId);
+      }
+    }
+
+    async function loadGroupInfo() {
+      if (!currentGroupId) return;
+
+      const groupRes = await fetch('/api/group-chats');
+      const groups = await groupRes.json();
+      const group = groups.find(g => g.id === currentGroupId);
+
+      if (group) {
+        document.getElementById('editGroupName').value = group.name;
+        document.getElementById('editGroupDescription').value = group.description || '';
+      }
+
+      const membersRes = await fetch(`/api/group-members/${currentGroupId}`);
+      const members = await membersRes.json();
+
+      const membersList = document.getElementById('groupMembersList');
+      membersList.innerHTML = members.map(m => `
+        <div style="padding:0.5rem;border-bottom:1px solid var(--border-color);">
+          ${escapeHtml(m.username)}
+        </div>
+      `).join('');
+    }
+
+    async function confirmLeaveGroup(groupId) {
+      const confirmed = await showPopup({
+        title: 'Leave Group',
+        message: 'Are you sure you want to leave this group?'
+      });
+
+      if (!confirmed) return;
+
+      await leaveGroup(groupId);
+    }
+
+    async function leaveGroup(groupId) {
+      groupId = groupId || currentGroupId;
+
+      const res = await fetch(`/api/leave-group/${groupId}`, {
+        method: 'POST'
+      });
+
+      if (res.ok) {
+        if (groupId === currentGroupId) {
+          currentGroupId = null;
+          chatType = null;
+          document.getElementById('chatTitle').textContent = 'Select a chat';
+          document.getElementById('messagesContainer').innerHTML = '';
+        }
+        loadGroupChats();
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('groupSettingsModal'));
+        if (modal) modal.hide();
+      } else {
+        alert('Error leaving group');
+      }
+    }
+
+    // FIXED: Delete conversation now properly clears the chat
+    async function deleteConversation(chatId, username) {
+      const confirmed = await showPopup({
+        title: 'Delete Conversation',
+        message: `Are you sure you want to permanently delete this conversation with ${username}? All messages will be lost.`
+      });
+
+      if (!confirmed) return;
+
+      const res = await fetch(`/api/delete-conversation/${chatId}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        // If the deleted conversation is currently open, clear it
+        if (chatType === 'dm' && conversationId === chatId) {
+          conversationId = null;
+          chatType = null;
+          document.getElementById('chatTitle').textContent = 'Select a chat';
+          document.getElementById('messagesContainer').innerHTML = '';
+        }
+        // Reload the sidebar to remove the deleted chat
+        loadPrivateChats();
+      } else {
+        alert('Error deleting conversation');
+      }
+    }
+
+    document.getElementById('createChatForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const username = document.getElementById('recipientUsername').value.trim();
+      if (!username) return;
+      const res = await fetch('/create-private-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipient_username: username })
+      });
+      if (res.redirected) {
+        window.location.href = res.url;
+      } else {
+        alert('Error starting chat');
+      }
+    });
+
+    document.getElementById('createGroupForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = document.getElementById('groupName').value.trim();
+      const description = document.getElementById('groupDescription').value.trim();
+
+      if (!name) {
+        alert('Please enter a group name');
+        return;
+      }
+
+      const res = await fetch('/api/create-group', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          description,
+          members: groupMembersToAdd
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('newGroupModal'));
+        modal.hide();
+        document.getElementById('createGroupForm').reset();
+        groupMembersToAdd = [];
+        updateMembersList();
+        loadGroupChats();
+
+        setTimeout(() => {
+          selectChat(data.group_id, name, 'group');
+        }, 500);
+      } else {
+        const errorText = await res.text();
+        alert('Error creating group: ' + errorText);
+      }
+    });
+
+    document.getElementById('updateGroupForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = document.getElementById('editGroupName').value.trim();
+      const description = document.getElementById('editGroupDescription').value.trim();
+
+      const res = await fetch(`/api/update-group/${currentGroupId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description })
+      });
+
+      if (res.ok) {
+        document.getElementById('chatTitle').textContent = name;
+        loadGroupChats();
+        alert('Group updated!');
+      } else {
+        alert('Error updating group');
+      }
+    });
+
+    document.getElementById('addMemberForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const username = document.getElementById('newMemberUsername').value.trim();
+      if (!username) return;
+
+      const res = await fetch('/api/add-group-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id: currentGroupId, username })
+      });
+
+      if (res.ok) {
+        document.getElementById('newMemberUsername').value = '';
+        loadGroupInfo();
+        alert(`${username} added to group!`);
+      } else {
+        const text = await res.text();
+        alert(text || 'Error adding member');
+      }
+    });
+
+    document.getElementById('user-profile').addEventListener('click', async () => {
+      const newPfp = await showPopup({
+        title: 'Change Profile Picture',
+        message: 'Enter new PFP URL:',
+        input: true,
+        defaultValue: userPfpUrl
+      });
+
+      if (!newPfp) return;
+
+      const res = await fetch('/api/update-pfp', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pfp_url: newPfp })
+      });
+
+      if (res.ok) {
+        userPfpUrl = newPfp;
+        document.getElementById('user-pfp').src = newPfp;
+        loadMessages();
+      } else {
+        alert('Error updating profile picture');
+      }
+    });
+
+    // Initialize everything when page loads
+    initUser().then(() => {
+      loadPrivateChats();
+      loadGroupChats();
+      connectWebSocket();
+    });
+  </script>
+</body>
+
+</html>

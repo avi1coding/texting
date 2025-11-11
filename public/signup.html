@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign up</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #222;
+      color: #74b72e;
+      font-family: 'Audiowide', 'Arial', sans-serif;
+      min-height: 100vh;
+      position: relative;
+    }
+    .card {
+      background-color: #101010;
+      border: none;
+      box-shadow: 0 0 15px #74b72e55;
+    }
+    .btn-success {
+      background-color: #74b72e;
+      border: none;
+      color: #222;
+      font-weight: bold;
+    }
+    .btn-success:hover {
+      background-color: #5aa91c;
+      color: #fff;
+    }
+    .link-green {
+      color: #74b72e !important;
+      text-decoration: underline;
+    }
+    .logo-text {
+      font-size: 2rem;
+      font-family: 'Audiowide', 'Arial', sans-serif;
+      color: #74b72e;
+      text-shadow: 2px 2px 4px #111;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh;">
+    <div class="logo-text mb-4">Chatting Hub</div>
+    <div class="card p-4" style="width: 100%; max-width: 420px;">
+      <h3 class="mb-3 text-center" style="color:#74b72e;">SIGN UP</h3>
+      <form id="signup-form" action="/signup" method="POST">
+  <div class="mb-3">
+    <label class="form-label" for="signup-username" style="color:#74b72e;">Username</label>
+    <input name="username" id="signup-username" class="form-control" required autocomplete="username">
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="signup-password" style="color:#74b72e;">Password</label>
+    <input type="password" name="password" id="signup-password" class="form-control" required autocomplete="new-password">
+  </div>
+  <input type="url" id="signup-pfp" placeholder="Profile picture URL (optional)">
+
+
+
+    <div id="signup-error" class="mb-3" style="display:none;"></div>
+
+  <button type="submit" class="btn btn-success w-100">Sign up</button>
+</form>
+
+      <div class="text-center mt-3">
+        <a href="/login" class="link-green">Back to Login</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('signup-username').value;
+  const password = document.getElementById('signup-password').value;
+  const pfp_url = document.getElementById('signup-pfp').value || '/default_pfp.png';
+
+  const res = await fetch('/api/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, pfp_url })
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    localStorage.setItem('user_id', data.user_id);
+    localStorage.setItem('username', username);
+    localStorage.setItem('pfp_url', pfp_url);
+    window.location.href = '/';
+  }
+});
+
+
+
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('signup-username').value;
+  const password = document.getElementById('signup-password').value;
+  const pfp_url = document.getElementById('signup-pfp').value || '/default_pfp.png';
+  const errorDiv = document.getElementById('signup-error');
+  errorDiv.style.display = 'none';
+  errorDiv.innerHTML = '';
+
+  const res = await fetch('/api/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, pfp_url })
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    localStorage.setItem('user_id', data.user_id);
+    localStorage.setItem('username', username);
+    localStorage.setItem('pfp_url', pfp_url);
+    window.location.href = '/';
+  } else {
+    // Make it look nice, matching your theme colors
+    errorDiv.innerHTML = `
+      <div class="alert alert-danger p-2" style="
+        background: #232323;
+        color: #ff6868;
+        border: 1px solid #9e2c2c;
+        border-radius: .5rem;
+        text-align: center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ff6868" viewBox="0 0 16 16" style="margin-bottom:2px;margin-right:4px;vertical-align:middle;">
+          <path d="M8.982 1.566a1.13 1.13 0 0 0-1.964 0L.165 13.233c-.457.778.091 1.767.982 1.767h13.707c.89 0 1.438-.99.982-1.767L8.982 1.566zm-1.02.858a.13.13 0 0 1 .076 0l6.858 11.667a.13.13 0 0 1-.108.209H1.258a.13.13 0 0 1-.108-.209L8.016 2.424zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0l-.35-3.507A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1-.002 0z"/>
+        </svg>
+        ${data.message || 'Sign up failed.'}
+      </div>`;
+    errorDiv.style.display = 'block';
+  }
+});
+
+  </script>
+</body>
+</html>
