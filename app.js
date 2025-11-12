@@ -1,4 +1,5 @@
 require('dotenv').config(); // ADD THIS LINE AT THE VERY TOP
+const fs = require('fs');
 
 const express = require('express');
 const mysql = require('mysql2');
@@ -24,16 +25,35 @@ const sessionParser = session({
   cookie: { maxAge: 1000 * 60 * 60 * 24 }
 });
 
+// Apply middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(sessionParser);
 
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: process.env.DB_PASSWORD, // CHANGED: Use environment variable
-  database: 'texting',
-});
+// Build DB connection config from environment variables so credentials are configurable.
+const dbConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME || 'texting',
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : undefined
+};
+
+// SSL handling: prefer CA file when provided, then DB_SSL=REQUIRED, then insecure mode (dev only)
+if (process.env.DB_SSL_CA_PATH) {
+  try {
+    dbConfig.ssl = { ca: fs.readFileSync(process.env.DB_SSL_CA_PATH), rejectUnauthorized: true };
+  } catch (err) {
+    console.warn('Could not read DB_SSL_CA_PATH file, continuing without CA:', err.message);
+  }
+} else if (process.env.DB_SSL && process.env.DB_SSL.toLowerCase() === 'required') {
+  dbConfig.ssl = { rejectUnauthorized: true };
+} else if (process.env.DB_SSL_INSECURE && process.env.DB_SSL_INSECURE.toLowerCase() === 'true') {
+  console.warn('⚠️  WARNING: Using insecure SSL (rejectUnauthorized: false). This should only be used for development/testing!');
+  dbConfig.ssl = { rejectUnauthorized: false };
+}
+
+const db = mysql.createConnection(dbConfig);
 
 db.connect(err => {
   if (err) {
