@@ -36,22 +36,11 @@ const dbConfig = {
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || 'texting',
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : undefined
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : undefined,
+  ssl: {
+        rejectUnauthorized: false
+    }
 };
-
-// SSL handling: check insecure mode first (for development), then CA file, then DB_SSL=REQUIRED
-if (process.env.DB_SSL_INSECURE && process.env.DB_SSL_INSECURE.toLowerCase() === 'true') {
-  console.warn('⚠️  WARNING: Using insecure SSL (rejectUnauthorized: false). This should only be used for development/testing!');
-  dbConfig.ssl = { rejectUnauthorized: false };
-} else if (process.env.DB_SSL_CA_PATH) {
-  try {
-    dbConfig.ssl = { ca: fs.readFileSync(process.env.DB_SSL_CA_PATH), rejectUnauthorized: true };
-  } catch (err) {
-    console.warn('Could not read DB_SSL_CA_PATH file, continuing without CA:', err.message);
-  }
-} else if (process.env.DB_SSL && process.env.DB_SSL.toLowerCase() === 'required') {
-  dbConfig.ssl = { rejectUnauthorized: true };
-}
 
 const db = mysql.createConnection(dbConfig);
 
