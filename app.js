@@ -39,8 +39,11 @@ const dbConfig = {
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : undefined
 };
 
-// SSL handling: prefer CA file when provided, then DB_SSL=REQUIRED, then insecure mode (dev only)
-if (process.env.DB_SSL_CA_PATH) {
+// SSL handling: check insecure mode first (for development), then CA file, then DB_SSL=REQUIRED
+if (process.env.DB_SSL_INSECURE && process.env.DB_SSL_INSECURE.toLowerCase() === 'true') {
+  console.warn('⚠️  WARNING: Using insecure SSL (rejectUnauthorized: false). This should only be used for development/testing!');
+  dbConfig.ssl = { rejectUnauthorized: false };
+} else if (process.env.DB_SSL_CA_PATH) {
   try {
     dbConfig.ssl = { ca: fs.readFileSync(process.env.DB_SSL_CA_PATH), rejectUnauthorized: true };
   } catch (err) {
@@ -48,9 +51,6 @@ if (process.env.DB_SSL_CA_PATH) {
   }
 } else if (process.env.DB_SSL && process.env.DB_SSL.toLowerCase() === 'required') {
   dbConfig.ssl = { rejectUnauthorized: true };
-} else if (process.env.DB_SSL_INSECURE && process.env.DB_SSL_INSECURE.toLowerCase() === 'true') {
-  console.warn('⚠️  WARNING: Using insecure SSL (rejectUnauthorized: false). This should only be used for development/testing!');
-  dbConfig.ssl = { rejectUnauthorized: false };
 }
 
 const db = mysql.createConnection(dbConfig);
